@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Risk Competitive Tools</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        touch-action: none;
+        overscroll-behavior: none;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        font-family: system-ui;
+        font-size: large;
+        background-color: #1e1e1e;
+        color: #f0f0f0;
+      }
+
+      #app {
+        --tools-height: 50px;
+        --tools-gap: 5px;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--tools-height) 1fr;
+        overflow: hidden;
+      }
+
+      #tools {
+        background-color: #444444;
+        display: grid;
+        grid-template-columns: repeat(3, max-content);
+        place-items: center;
+        place-content: center;
+        gap: var(--tools-gap);
+        position: relative;
+        z-index: 1;
+      }
+
+      #tools button {
+        --duration: 250ms;
+        --easing: ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: calc(var(--tools-height) - (var(--tools-gap) * 2));
+        aspect-ratio: 1 / 1;
+        padding: calc((var(--tools-height) - (var(--tools-gap) * 2)) * 0.1);
+        border: none;
+        background-color: #f0f0f0;
+        color: #1e1e1e;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background-color var(--duration) var(--easing), color var(--duration) var(--easing);
+        margin-inline: calc(var(--tools-gap) / 2);
+        position: relative;
+      }
+
+      #tools button:hover,
+      #tools button.selected {
+        background-color: #1e1e1e;
+        color: #f0f0f0;
+      }
+
+      #tools button svg {
+        height: 75%;
+        width: auto;
+        display: block;
+      }
+
+      #tools button input[type="color"] {
+        cursor: pointer;
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        height: 75%;
+        width: auto;
+        aspect-ratio: 1 / 1;
+        display: block;
+        color: crimson;
+      }
+
+      #tools button input[type="range"] {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translate(-50%, 100%);
+        display: none;
+      }
+
+      #tools button:focus-within input[type="range"] {
+        display: block;
+      }
+
+      #canvas-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        position: absolute;
+        inset: 0;
+        touch-action: auto;
+      }
+
+      canvas.drawing {
+        cursor: crosshair;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="tools">
+        <button id="brush-tool" style="color: #ed143d" class="selected">
+          <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <path
+              fill="currentColor"
+              d="M175.2 288.9c-24.31 2.156-46.98 12.2-64.38 29.7c-22.4 22.51-32.32 52.9-29.74 82.38c2.254 25.82-16.99 46.1-49.03 46.1C14.34 448 0 462.3 0 480C0 497.7 14.34 512 32.04 512h53.78c54.59 0 133.2-7.568 172.3-46.92c23.67-23.82 32.49-56.36 28.19-87.39L175.2 288.9zM499.5 17.46c-8.979-10.28-21.4-16.44-35.01-17.33c-13.55-1-26.72 3.578-36.92 12.59L222.3 193.7C215.8 199.4 210.1 206.2 205.7 213.1c-9.459 14.95-13.76 31.67-13.78 48.2l110.3 88.18c23.03-5.436 42.71-19.34 55.41-39.44l146.4-231.6C516.2 59.49 514.2 34.4 499.5 17.46z"
+            />
+          </svg>
+        </button>
+        <button id="brush-size-tool">
+          <input type="range" min="1" max="20" step="1" value="5" id="brush-size" />
+          <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <path
+              fill="currentColor"
+              d="M109.5 244.1l134.6-134.6L199.9 65.37L138.3 127.1C136.1 128.3 134.4 129.4 132.6 129.4c-1.812 0-4.312-1.031-5.594-2.312L115.8 115.9C112.7 112.8 112.7 107.7 115.8 104.6L177.5 42.95L143.9 9.31c-12.41-12.39-32.5-12.39-44.87 0L9.29 99.01c-12.37 12.39-12.37 32.47 0 44.86L109.5 244.1zM497.9 127.2c18.75-18.75 18.75-49.17-.0006-67.92l-45.25-45.25c-18.78-18.77-49.19-18.77-67.97 0l-45.1 46l113.2 113.2L497.9 127.2zM469.1 334.5l-61.69 61.69c-3.094 3.094-8.117 3.07-11.21-.0239l-11.19-11.19c-3.094-3.094-3.094-8.125 0-11.2l61.69-61.69L402.5 267.9l-134.6 134.6l100.2 100.2c12.41 12.39 32.5 12.39 44.87 0l89.72-89.7c12.37-12.39 12.37-32.47 0-44.86L469.1 334.5zM316.1 82.71l-289.8 289.8c-4.656 4.656-7.763 10.63-8.896 17.12l-17.04 97.47c-2.533 14.49 10.09 27.1 24.58 24.56l97.53-17.1c6.478-1.135 12.45-4.239 17.1-8.89l289.8-289.8L316.1 82.71z"
+            />
+          </svg>
+        </button>
+        <button id="color-picker-tool">
+          <input type="color" id="color-picker" value="#ed143d" />
+          <svg height="48px" viewBox="0 0 48 48" width="48px" xmlns="http://www.w3.org/2000/svg">
+            <g fill="currentColor">
+              <path
+                d="M24.37,47.104c0,0-0.001,0-0.001,0C17.987,47.103,4,41.536,4,25C4,11.767,13.42,1,24.998,1C37.167,1,46,11.093,46,25     c0,4.752-3.013,13.84-7.737,13.84c-1.542,0-2.988-0.971-4.299-2.886c-1-1.461-2.072-2.299-2.94-2.299     c-0.443,0-0.856,0.229-1.228,0.682c-1.053,1.284-1.82,4.445-0.816,9.466c0.143,0.715-0.019,1.383-0.469,1.932     C27.585,46.866,25.748,47.104,24.37,47.104z M24.998,3C14.522,3,6,12.869,6,25c0,15.04,12.614,20.103,18.368,20.104     c0,0,0.001,0,0.001,0c1.531,0,2.355-0.342,2.596-0.636c0.048-0.058,0.084-0.119,0.054-0.271     c-0.969-4.846-0.509-9.005,1.23-11.127c0.759-0.925,1.718-1.414,2.774-1.414c1.104,0,2.797,0.55,4.59,3.169     c0.629,0.919,1.6,2.016,2.649,2.016C40.978,36.84,44,29.783,44,25C44,12.252,36.008,3,24.998,3z"
+              />
+              <path
+                d="M18.998,41c-2.757,0-5-2.243-5-5s2.243-5,5-5s5,2.243,5,5S21.755,41,18.998,41z M18.998,33c-1.654,0-3,1.346-3,3     s1.346,3,3,3s3-1.346,3-3S20.652,33,18.998,33z"
+              />
+              <path
+                d="M13.006,27c0,0-0.003,0-0.004,0c-2.206,0-3.999-1.794-3.999-4c-0.001-1.067,0.415-2.072,1.17-2.828S11.934,19,13.003,19     c1.07,0,2.074,0.417,2.829,1.174c0.754,0.756,1.169,1.76,1.168,2.827c0.003,1.064-0.411,2.068-1.166,2.825     C15.08,26.583,14.075,27,13.006,27z M13.006,21c-0.538,0-1.04,0.208-1.418,0.586c-0.378,0.377-0.585,0.879-0.585,1.413     C11.003,24.103,11.899,25,13,25l0.006,1v-1c0.534,0,1.036-0.208,1.413-0.586c0.376-0.377,0.583-0.878,0.582-1.411     c0-0.536-0.207-1.038-0.584-1.416C14.039,21.208,13.538,21,13.006,21z"
+              />
+              <path
+                d="M18.003,18c0,0-0.003,0-0.004,0C15.793,18,14,16.206,14,14c-0.001-1.067,0.415-2.072,1.17-2.828S16.931,10,18,10     c1.07,0,2.074,0.417,2.829,1.174c0.754,0.756,1.169,1.76,1.168,2.827c0.003,1.064-0.411,2.068-1.166,2.825     C20.077,17.583,19.072,18,18.003,18z M18.003,12c-0.538,0-1.04,0.208-1.418,0.586C16.207,12.964,16,13.466,16,13.999     C16,15.103,16.896,16,17.997,16l0.006,1v-1c0.534,0,1.036-0.208,1.413-0.586c0.376-0.377,0.583-0.878,0.582-1.411     c0-0.536-0.207-1.038-0.584-1.416C19.036,12.208,18.535,12,18.003,12z"
+              />
+              <path
+                d="M27.006,14c0,0-0.003,0-0.004,0c-2.206,0-3.999-1.794-3.999-4c-0.001-1.067,0.415-2.072,1.17-2.828S25.934,6,27.003,6     c1.07,0,2.074,0.417,2.829,1.174c0.754,0.756,1.169,1.76,1.168,2.827c0.003,1.064-0.411,2.068-1.166,2.825     C29.08,13.583,28.075,14,27.006,14z M27.006,8c-0.538,0-1.04,0.208-1.418,0.586c-0.378,0.377-0.585,0.879-0.585,1.413     C25.003,11.103,25.899,12,27,12l0.006,1v-1c0.534,0,1.036-0.208,1.413-0.586c0.376-0.377,0.583-0.878,0.582-1.411     c0-0.536-0.207-1.038-0.584-1.416C28.039,8.208,27.538,8,27.006,8z"
+              />
+              <path
+                d="M36.003,21c0,0-0.003,0-0.004,0C33.793,21,32,19.206,32,17c-0.001-1.067,0.415-2.072,1.17-2.828S34.931,13,36,13     c1.07,0,2.074,0.417,2.829,1.174c0.754,0.756,1.169,1.76,1.168,2.827c0.003,1.064-0.411,2.068-1.166,2.825     C38.077,20.583,37.072,21,36.003,21z M36.003,15c-0.538,0-1.04,0.208-1.418,0.586C34.207,15.964,34,16.466,34,16.999     C34,18.103,34.896,19,35.997,19l0.006,1v-1c0.534,0,1.036-0.208,1.413-0.586c0.376-0.377,0.583-0.878,0.582-1.411     c0-0.536-0.207-1.038-0.584-1.416C37.036,15.208,36.535,15,36.003,15z"
+              />
+            </g>
+          </svg>
+        </button>
+      </div>
+      <div id="canvas-container">
+        <canvas id="canvas" class="drawing"></canvas>
+      </div>
+    </div>
+    <script>
+      const params = new URLSearchParams(location.search);
+      /** @type {HTMLButtonElement} */
+      const brushTool = document.querySelector("#brush-tool");
+      /** @type {HTMLInputElement} */
+      const brushSize = document.querySelector("#brush-size");
+      /** @type {HTMLInputElement} */
+      const colorPicker = document.querySelector("#color-picker");
+      /** @type {HTMLCanvasElement} */
+      const canvas = document.querySelector("#canvas");
+      /** @type {CanvasRenderingContext2D} */
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      let imgWidth = img.width;
+      let imgHeight = img.height;
+      /**
+       * @type {{color: string, size: number, lines: {x1: number, y1: number, x2: number, y2: number}[]}[]}
+       */
+      const lines = [];
+
+      img.onload = function render() {
+        requestAnimationFrame(render);
+        const resized = canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight;
+        if (resized) {
+          canvas.width = canvas.clientWidth;
+          canvas.height = canvas.clientHeight;
+          const imgAspectRatio = img.width / img.height;
+          if (imgAspectRatio > canvas.width / canvas.height) {
+            imgWidth = canvas.width;
+            imgHeight = imgWidth / imgAspectRatio;
+          } else {
+            imgHeight = canvas.height;
+            imgWidth = imgHeight * imgAspectRatio;
+          }
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const ix = imgWidth / 2;
+        const iy = imgHeight / 2;
+        ctx.drawImage(img, cx - ix, cy - iy, imgWidth, imgHeight);
+        ctx.lineCap = "round";
+        for (const line of lines) {
+          ctx.beginPath();
+          for (const l of line.lines) {
+            ctx.strokeStyle = line.color;
+            ctx.lineWidth = line.size;
+            ctx.moveTo(l.x1, l.y1);
+            ctx.lineTo(l.x2, l.y2);
+          }
+          ctx.stroke();
+          ctx.closePath();
+        }
+      };
+      img.src = params.get("screenshot");
+
+      let pointerDown = false;
+      let x = 0;
+      let y = 0;
+      let linesIndex = 0;
+      let color = "crimson";
+      let size = 5;
+
+      /** @param {PointerEvent} event */
+      function onPointerDown(event) {
+        if (event.target !== canvas) return;
+        if (!canvas.classList.contains("drawing")) return;
+        pointerDown = true;
+        linesIndex = lines.length;
+        lines.push({ color, size, lines: [] });
+        x = event.offsetX;
+        y = event.offsetY;
+      }
+
+      /** @param {PointerEvent} event */
+      function onPointerMove(event) {
+        if (!pointerDown) return;
+        if (!canvas.classList.contains("drawing")) return;
+        lines[linesIndex].lines.push({ x1: x, y1: y, x2: event.offsetX, y2: event.offsetY });
+        x = event.offsetX;
+        y = event.offsetY;
+      }
+
+      /** @param {PointerEvent} event */
+      function onPointerUp(event) {
+        pointerDown = false;
+        if (!canvas.classList.contains("drawing")) return;
+        lines[linesIndex].lines.push({ x1: x, y1: y, x2: event.offsetX, y2: event.offsetY });
+        x = 0;
+        y = 0;
+      }
+
+      function toggleBrushTool() {
+        brushTool.classList.toggle("selected");
+        canvas.classList.toggle("drawing");
+        pointerDown = false;
+      }
+
+      function onBrushSizeChange() {
+        size = brushSize.value;
+      }
+
+      function onColorPickerChange() {
+        color = colorPicker.value;
+        brushTool.style.color = color;
+      }
+
+      canvas.addEventListener("pointerdown", onPointerDown);
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+      brushTool.addEventListener("pointerdown", toggleBrushTool);
+      brushSize.addEventListener("input", onBrushSizeChange);
+      colorPicker.addEventListener("input", onColorPickerChange);
+    </script>
+  </body>
+</html>
